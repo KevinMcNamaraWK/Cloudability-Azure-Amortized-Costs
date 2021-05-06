@@ -1,0 +1,20 @@
+$cldyServicePrincipalAppId = "1ba79ced-1862-41d1-95bc-66d6bc5aff7f"
+$cldyServicePrincipalObjectId = (Get-AzADServicePrincipal -ApplicationId $cldyServicePrincipalAppId).id
+if (!$cldyServicePrincipalObjectId) {
+  New-AzADServicePrincipal -ApplicationId $cldyServicePrincipalAppId -Role Reader
+  $cldyServicePrincipalObjectId = (Get-AzADServicePrincipal -ApplicationId $cldyServicePrincipalAppId).id
+} else {
+  echo "Service principal already present, skipping new service principal creation"
+}
+$existingExportRole = (Get-AzRoleAssignment `
+-ObjectId $cldyServicePrincipalObjectId `
+-RoleDefinitionId 2a2b9908-6ea1-4ae2-8e65-a410df84e7d1 `
+-Scope /subscriptions/6a4eea0d-60cf-4a28-b6ca-ded6c8c5a4af/resourceGroups/CostUsage/providers/Microsoft.Storage/storageAccounts/costexpdata).RoleAssignmentId
+if (!$existingExportRole) {
+  New-AzRoleAssignment `
+  -ObjectId $cldyServicePrincipalObjectId `
+  -RoleDefinitionId 2a2b9908-6ea1-4ae2-8e65-a410df84e7d1 `
+  -Scope /subscriptions/6a4eea0d-60cf-4a28-b6ca-ded6c8c5a4af/resourceGroups/CostUsage/providers/Microsoft.Storage/storageAccounts/costexpdata
+} else {
+  echo "Role already present, skipping new role assignment"
+}
